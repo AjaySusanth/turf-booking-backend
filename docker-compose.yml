@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: turf-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: turfdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - turf_pgdata:/var/lib/postgresql/data
+
+volumes:
+  turf_pgdata:
