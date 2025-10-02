@@ -14,5 +14,18 @@ services:
     volumes:
       - turf_pgdata:/var/lib/postgresql/data
 
+  app: 
+    build: .
+    container_name: turf-backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/turfdb
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+
 volumes:
   turf_pgdata:
