@@ -8,9 +8,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
+enum UserRole {
+  PLAYER
+  TURF_OWNER
+  ADMIN
 }
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique @db.VarChar(255)
+  phone         String?        @unique @db.VarChar(20)
+  passwordHash  String
+  role          UserRole       @default(PLAYER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  sessions      UserSession[]
+  @@map("user")
+}
+
+model UserSession {
+  id               String   @id @default(uuid())
+  userId           String
+  refreshTokenHash String
+  createdAt        DateTime @default(now())
+  expiresAt        DateTime
+  revokedAt        DateTime?
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@unique([userId, refreshTokenHash])
+
+  @@map("userSession")
+}
+
