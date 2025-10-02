@@ -10,6 +10,7 @@ datasource db {
 }
 
 enum UserRole {
+  USER
   PLAYER
   TURF_OWNER
   ADMIN
@@ -18,9 +19,10 @@ enum UserRole {
 model User {
   id            String         @id @default(uuid())
   email         String         @unique @db.VarChar(255)
+  name          String         
   phone         String?        @unique @db.VarChar(20)
   passwordHash  String
-  role          UserRole       @default(PLAYER)
+  role          UserRole       @default(USER)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
