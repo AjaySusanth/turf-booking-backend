@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
@@ -16,16 +16,19 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(200)
   async login(@Body() dto:LoginDto) {
     return this.authService.login(dto)
   }
 
   @Post('refresh')
+  @HttpCode(200)
   async refresh(@Body() dto:RefreshDto) {
     return this.authService.refresh(dto)
   }
 
   @Post('logout')
+  @HttpCode(200)
   async logout(@Body() dto:LogoutDto) {
     return this.authService.logout(dto)
   }
