@@ -1,0 +1,19 @@
+version: '3.9'
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: turf_postgres_test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: turf_test
+    ports:
+      - "5433:5432"   # avoid clashing with dev db on 5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d turf_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data   # optional if you want ephemeral (no persistence)
