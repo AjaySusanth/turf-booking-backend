@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterOwnerDto } from './dto/register-owner.dto';
 import { UserRole } from '../../generated/prisma';
@@ -55,6 +55,24 @@ export class OwnerService {
             this.logger.error(`Failed to register owner for user ${userId}:  ${error.message}`, error.stack);
             throw new InternalServerErrorException('Could not complete registration');
         }
+    }
+
+    async getProfile(userId:string) {
+        const owner = await this.prisma.ownerProfile.findUnique({
+            where:{userId},
+            include:{
+                user:{
+                    select:{
+                        name:true,email:true,phone:true,role:true
+                    }
+                }
+            }
+        
+        })
+
+        if (!owner) throw new NotFoundException("Owner profile not found")
+        return owner
+
     }
 }
 
