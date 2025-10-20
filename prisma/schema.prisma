@@ -57,6 +57,7 @@ model OwnerProfile {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turfs        Turf[] 
 
   @@map("ownerProfile")
 }
@@ -73,3 +74,60 @@ model EventOutbox {
   @@map("eventOutbox")
   @@index([status, createdAt])
 }
+
+model Turf {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  location    String
+  address     String
+  city        String
+  state       String
+  pincode     String
+  latitude    Float?
+  longitude   Float?
+  turfSports  TurfSport[]
+  isActive    Boolean      @default(true)
+  contactNumber String?    @db.VarChar(20)
+
+
+  ownerId     String
+  owner       OwnerProfile @relation(fields: [ownerId], references: [id])
+
+  images      TurfImage[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([ownerId])
+  @@index([city])
+  @@index([isActive])
+}
+
+
+model TurfImage {
+  id         String   @id @default(uuid())
+  turfId     String
+  turf       Turf     @relation(fields: [turfId], references: [id], onDelete: Cascade)
+  imageUrl   String   // Cloudflare image URL
+  publicId   String   // Cloudflare image identifier
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model TurfSport {
+  id       String   @id @default(uuid())
+  turfId   String
+  sport    Sport
+  turf     Turf     @relation(fields: [turfId], references: [id],onDelete: Cascade)
+}
+
+
+enum Sport {
+  FOOTBALL
+  CRICKET
+  BADMINTON
+  BASKETBALL
+  TENNIS
+}
+
