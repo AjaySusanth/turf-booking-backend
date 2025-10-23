@@ -94,7 +94,7 @@ model Turf {
   ownerId     String
   owner       OwnerProfile @relation(fields: [ownerId], references: [id])
 
-  images      TurfImage[]
+  media      Media[]      @relation("TurfMedia")
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -104,17 +104,6 @@ model Turf {
   @@index([isActive])
 }
 
-
-model TurfImage {
-  id         String   @id @default(uuid())
-  turfId     String
-  turf       Turf     @relation(fields: [turfId], references: [id], onDelete: Cascade)
-  imageUrl   String   // Cloudflare image URL
-  publicId   String   // Cloudflare image identifier
-  isPrimary  Boolean  @default(false)
-  createdAt  DateTime @default(now())
-}
-
 model TurfSport {
   id       String   @id @default(uuid())
   turfId   String
@@ -122,6 +111,30 @@ model TurfSport {
   turf     Turf     @relation(fields: [turfId], references: [id],onDelete: Cascade)
 }
 
+model Media {
+  id          String       @id @default(uuid())
+  entityType  String       // e.g. "TURF", "PLAYER", "TOURNAMENT"
+  entityId    String       // UUID of related entity (Turf.id, Player.id, etc.)
+  mediaType   MediaType    @default(IMAGE)
+  url         String       // Cloudflare/Cloudinary delivery URL
+  publicId    String       // Public ID from Cloud provider
+  isPrimary   Boolean      @default(false)
+  format      String?      // jpg, png, webp, mp4, etc.
+  size        Int?
+  status      UploadStatus @default(PENDING)
+  sortOrder   Int?         // For gallery ordering
+  altText     String?      // Accessibility / SEO
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  // Optional relation back to Turf for convenience
+  turf        Turf?        @relation("TurfMedia", fields: [entityId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([entityId, isPrimary])
+  @@map("media")
+}
 
 enum Sport {
   FOOTBALL
@@ -130,4 +143,14 @@ enum Sport {
   BASKETBALL
   TENNIS
 }
+enum MediaType {
+  IMAGE
+  VIDEO
+}
 
+enum UploadStatus {
+  PENDING
+  UPLOADED
+  FAILED
+  DELETED
+}
