@@ -23,7 +23,7 @@ export class TurfService {
             create: sports.map((sport) => ({ sport })),
           },
         },
-        include: { turfSports: true, images: true },
+        include: { turfSports: true, media: true },
       });
 
       await tx.eventOutbox.create({
@@ -47,7 +47,7 @@ export class TurfService {
 
     return this.prisma.turf.findMany({
       where: { ownerId: owner.id },
-      include: { turfSports: true, images: true },
+      include: { turfSports: true, media: true },
     });
   }
 
@@ -58,7 +58,7 @@ export class TurfService {
 
     const turf = await this.prisma.turf.findUnique({
       where: { id: turfId },
-      include: { turfSports: true, images: true },
+      include: { turfSports: true, media: true },
     });
     if (!turf) throw new NotFoundException('Turf not found');
     if (turf.ownerId !== owner.id) throw new ForbiddenException('Access denied');
@@ -88,7 +88,7 @@ export class TurfService {
             }
           : undefined,
       },
-      include: { turfSports: true, images: true },
+      include: { turfSports: true, media: true },
     });
   }
 
