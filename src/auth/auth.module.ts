@@ -16,7 +16,7 @@ import { RolesGuard } from './guards/roles.guard';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_ACCESS_SECRET'),
-        signOptions: { expiresIn: '15m' },
+        signOptions: { expiresIn: '1hr' }, // for testing 1hr, use 15m for prod
       }),
     }),
   ],

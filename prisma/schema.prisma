@@ -102,6 +102,7 @@ model Turf {
   @@index([ownerId])
   @@index([city])
   @@index([isActive])
+  @@unique([createdAt, id], name: "createdAt_id")
 }
 
 model TurfSport {

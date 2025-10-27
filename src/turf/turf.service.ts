@@ -1,7 +1,10 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTurfDto } from './dto/create-turf.dto';
 import { UpdateTurfDto } from './dto/update-turf.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { GetTurfQueryDto } from './dto/get-turf-query.dto';
+import { decodeCursor, encodeCursor } from './utils/pagination.util';
+import { decode } from 'punycode';
 
 @Injectable()
 export class TurfService {
@@ -105,4 +108,85 @@ export class TurfService {
     await this.prisma.turf.delete({ where: { id: turfId } });
     return {message:"Turf deleted successfully"}
   }
+
+  async getTurfs(filters:GetTurfQueryDto) {
+    const { city, sport, search, isActive, limit, cursor } = filters;
+    const where: any = { isActive };
+    
+    if (city) where.city = {contains:city,mode: 'insensitive'}
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (sport) {
+      where.turfSports = { some: { sport } };
+    }
+
+    let cursorFilter:
+  | {
+      createdAt_id: {
+        createdAt: Date;
+        id: string;
+      };
+    }
+  | undefined;
+
+
+
+    if (cursor) {
+      const decoded = decodeCursor(cursor)
+
+      if(!decoded || !decoded.id || !decoded.createdAt) {
+        throw new BadRequestException("Invalid cursor")
+      }
+
+      cursorFilter = {
+        createdAt_id : {
+          createdAt: new Date(decoded.createdAt),
+          id: decoded.id
+        }
+      }
+    }
+
+    const turfs = await this.prisma.turf.findMany({
+      where,
+      take: limit + 1,
+      ...(cursorFilter && {cursor: cursorFilter}),
+      orderBy:[{createdAt:'desc'},{id:'desc'}],
+      include:{
+        turfSports:true,
+        media:{
+          where: { isPrimary: true, status: 'UPLOADED' },
+          take: 1,
+        },
+        owner: { select: { businessName: true } },
+      }
+    })
+
+    let nextCursor : string | null = null
+
+    if (turfs.length > limit) {
+      const next = turfs.pop()!
+      nextCursor = encodeCursor({
+        id:next?.id,
+        createdAt:next?.createdAt.toISOString()
+      })
+    }
+
+    return {
+      data:turfs,
+      pagination:{
+        limit,
+        nextCursor,
+        hasNextPage: !!nextCursor
+      }
+    }
+  }
 }
+
+
+

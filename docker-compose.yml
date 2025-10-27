@@ -25,7 +25,6 @@ services:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/turfdb
     volumes:
       - .:/usr/src/app
-      - /usr/src/app/node_modules
 
 volumes:
   turf_pgdata:
